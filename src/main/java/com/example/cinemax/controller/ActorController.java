@@ -5,10 +5,12 @@ import com.example.cinemax.dto.ErrorResponse;
 import com.example.cinemax.dto.actor.ActorDto;
 import com.example.cinemax.dto.actor.ActorWithMoviesDto;
 import com.example.cinemax.dto.actor.CreateActorDto;
+import com.example.cinemax.dto.actor.UpdateActorDto;
 import com.example.cinemax.model.Actor;
 import com.example.cinemax.service.concrets.ActorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -54,11 +56,45 @@ public class ActorController {
             ActorDto savedActor = actorService.addActor(actorDto);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse<>("Actor created successfully", HttpStatus.CREATED.value(), savedActor));
+        }catch (EntityNotFoundException e){
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(e.getMessage(), HttpStatus.BAD_REQUEST.value(), null));
         }catch (Exception e){
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>("Failed to create actor", HttpStatus.BAD_REQUEST.value(), null));
         }
     }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ActorDto>> updateActor(@RequestBody @Valid UpdateActorDto actorDto) {
+        try {
+            ActorDto updatedActor = actorService.updateActor(actorDto);
+            return ResponseEntity.ok(new ApiResponse<>("Actor updated successfully", HttpStatus.OK.value(), updatedActor));
+        }catch (EntityNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(e.getMessage(), HttpStatus.NOT_FOUND.value(), null));
+        }catch (Exception e){
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>("Failed to update actor", HttpStatus.BAD_REQUEST.value(), null));
+        }
+
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteActor(@PathVariable Long id) {
+        try {
+            actorService.deleteActor(id);
+            return ResponseEntity.ok(new ApiResponse<>("Actor deleted successfully", HttpStatus.OK.value(), null));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>("Actor not found", HttpStatus.NOT_FOUND.value(), null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>("Failed to delete actor", HttpStatus.BAD_REQUEST.value(), null));
+        }
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
