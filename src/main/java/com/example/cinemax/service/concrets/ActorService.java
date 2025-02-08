@@ -72,7 +72,7 @@ public class ActorService implements IActorService {
         Actor actor = actorRepository
                 .findById(actorDto.getId())
                 .orElseThrow(()-> new RuntimeException("Actor not found."));
-        if(!actorDto.getFullname().isEmpty()){
+        if(actorDto.getFullname() != null){
             actor.setFullname(actorDto.getFullname());
         }
 
